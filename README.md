@@ -59,7 +59,3 @@ Each function's built-in documentation comes with more details.
 
 TODO: document this more.  Hopefully this with the actual function docs is
 somewhat self-explanatory.
-
-### A note about circular dependencies:
-
-Don't have them.
