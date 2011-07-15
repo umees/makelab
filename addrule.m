@@ -1,5 +1,5 @@
-function s = addrule(target,deps,fdeps,rule,force,mfname)
-% function addrule(target,deps,fdeps,rule,force,mfname)
+function s = addrule(target,deps,fdeps,rule,mfname)
+% function addrule(target,deps,fdeps,rule,mfname)
 %
 % Adds a rule to a makefile. Make sure the makefile is global.
 %
@@ -9,28 +9,30 @@ function s = addrule(target,deps,fdeps,rule,force,mfname)
 %	deps; cell array of other targets this depends on
 %	fdeps; cell array of filenames this depends on
 %	rule; string that will build the target when evaluated
-%	force; optional, default 1;
-%		clobber the original rule if it exists, otherwise
-%		do nothing.
 %	mfname; optional, default 'makefile'; makefile to use
 %
 % out: 0 if the rule was added and didn't exist
 %      1 if the rule replaced a previous rule
-%      2 if nothing happened because force = 0
+%      2 if the rule already existed and was identical
 %
-	if nargin < 6; mfname = 'makefile'; end
-	if nargin < 5; force = 1; end
+	if nargin < 5; mfname = 'makefile'; end
 	if nargin < 4; help(mfilename); error(mfilename); return; end
 	eval(['global ', mfname, ';'])
+	same = 0;
+	s = 0;
 	if eval(['isfield(', mfname, ',target)'])
 		s = 1;
-		if force == 0
-			s = 2;
-			return;
-		end
+		cur = eval([mfname, '.', target]);
+		same = isequal(cur.deps,deps) && ...
+			isequal(cur.fdeps,fdeps) && ...
+			isequal(cur.rule,rule);
 	end
-	t.deps = deps;
-	t.fdeps = fdeps;
-	t.rule = rule;
-	t.timestamp = 0;
-	eval([mfname, '.', target, ' = t;']);
+	if not(same)
+		t.deps = deps;
+		t.fdeps = fdeps;
+		t.rule = rule;
+		t.timestamp = 0;
+		eval([mfname, '.', target, ' = t;']);
+	else
+		s = 2;
+	end
