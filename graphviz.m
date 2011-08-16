@@ -18,6 +18,8 @@ function graphviz(mfname,opts,tmpdir)
 	eval(['global ', mfname, ';'])
 	mf = eval(mfname);
 
+	fontname = 'monospace';
+
 	fh = fopen([tmpdir, '/makelab.gv'],'w');
 	fprintf(fh,'digraph %s {\n\trankdir=LR\n',mfname);
 
@@ -32,6 +34,7 @@ function graphviz(mfname,opts,tmpdir)
 		for j = 1:length(deps)
 			fprintf(fh,'\t%s -> %s;\n',deps{j},target);
 		end
+		fprintf(fh,'\t%s [style=filled,fontname=%s];\n',target,fontname);
 		for j = 1:length(fdeps)
 			fprintf(fh,'\t%s -> %s [style=dotted];\n',fixfn(fdeps{j}),target);
 			fnames = addifunique(fnames,fdeps{j});
@@ -46,9 +49,10 @@ function graphviz(mfname,opts,tmpdir)
 	% Uncomment this and (*) for a cluster of files on the side
 	%fprintf(fh,'\tsubgraph clusterfiles {\n');
 	for i = 1:length(fnames)
-		fprintf(fh,'\t\t%s [label="%s",shape=note];\n',fixfn(fnames{i}),fnames{i});
+		fprintf(fh,'\t\t%s [label="%s",shape=note,fontname=%s];\n',fixfn(fnames{i}),fnames{i},fontname);
 	end
 	%fprintf(fh,'\t}\n}\n'); % (*)
+	fprintf(fh,'}\n');
 	system(sprintf('dot %s/makelab.gv -Tps -o%s/makelab.ps %s',tmpdir,tmpdir,opts));
 	system(sprintf('gv %s/makelab.ps',tmpdir));
 	dummy = 0;
