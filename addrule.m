@@ -16,6 +16,12 @@ function s = addrule(target,deps,fdeps,rule,mfname)
 %      2 if the rule already existed and was identical
 %
 	if nargin < 5; mfname = 'makefile'; end
+        % common pattern:
+        % expand addrule('x',{'y'}) to addrule('x',{'y'},{'x.m'},'x')
+        if nargin == 2
+            addrule(target,deps,{[target, '.m']},target);
+            return;
+        end
 	if nargin < 4; help(mfilename); error(mfilename); return; end
 	eval(['global ', mfname, ';'])
 	same = 0;
