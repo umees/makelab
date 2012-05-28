@@ -111,9 +111,9 @@ function status = make(target,mfname,dlvl,depth,parents)
     dirty = any(results > tt) || tt == 0; %% assume tt = 0 implies it is unmade
     if err
         status = -1;
-        if (dlvl >= 1); pi(); fprintf('not making %s.\n', target); end
+        if (dlvl >= 2); pi(); fprintf('not making %s.\n', target); end
     elseif dirty
-        if (dlvl >= 1); pi(); fprintf('making %s...\n', target); end
+        if (dlvl >= 2); pi(); fprintf('making %s...\n', target); end
         try
             tic;
             evalin('base', eval([tptr '.rule']))
@@ -143,7 +143,9 @@ function status = make(target,mfname,dlvl,depth,parents)
             status = -1;
         end
     else
-        if (dlvl >= 1); pi(); fprintf('nothing to do for %s.\n', target); end
+        if (dlvl >= 2 || (dlvl >= 1 && depth == 0))
+            pi(); fprintf('nothing to do for %s.\n', target);
+        end
         status = tt;
     end
 
