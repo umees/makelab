@@ -63,7 +63,7 @@ function status = make(target,mfname,dlvl,depth,parents)
     clean = 1;
     deps = eval([tptr '.deps'],'{}');
     dr = zeros(length(deps),1);
-    if (dlvl >= 1); pi(); fprintf('looking at %s:\n', target); end
+    if (dlvl >= 2); pi(); fprintf('looking at %s:\n', target); end
     for i = 1:length(deps)
         if (dlvl >= 2); pi(); fprintf('%s making %s...\n', target, deps{i}); end
         parents{length(parents) + 1} = target;
@@ -113,7 +113,7 @@ function status = make(target,mfname,dlvl,depth,parents)
         status = -1;
         if (dlvl >= 2); pi(); fprintf('not making %s.\n', target); end
     elseif dirty
-        if (dlvl >= 2); pi(); fprintf('making %s...\n', target); end
+        if (dlvl >= 1); pi(); fprintf('now making %s:\n', target); end
         try
             tic;
             evalin('base', eval([tptr '.rule']))
@@ -127,7 +127,7 @@ function status = make(target,mfname,dlvl,depth,parents)
             if (dlvl >= 3); pi(); fprintf('it is %d.\n',tt); end;
             eval(sprintf('%s = %f;',ttptr,tt));
             status = tt;
-            fprintf('made %s in %f s.\n',target,t);
+            fprintf('made %s in %0.3f s.\n',target,t);
         catch err
             eval([ttptr ' = 0;']);
             if (dlvl >= 0)
