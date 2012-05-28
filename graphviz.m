@@ -53,8 +53,15 @@ function graphviz(mfname,opts,tmpdir)
 	end
 	%fprintf(fh,'\t}\n}\n'); % (*)
 	fprintf(fh,'}\n');
-	system(sprintf('dot %s/makelab.gv -Tps -o%s/makelab.ps %s',tmpdir,tmpdir,opts));
-	system(sprintf('gv %s/makelab.ps',tmpdir));
+        if ismac
+            system(sprintf('dot %s/makelab.gv -Tpng -o%s/makelab.png %s',...
+                           tmpdir,tmpdir,opts));
+            system(sprintf('open %s/makelab.png',tmpdir));
+        else
+            system(sprintf('dot %s/makelab.gv -Tps -o%s/makelab.ps %s',...
+                           tmpdir,tmpdir,opts));
+            system(sprintf('gv %s/makelab.ps',tmpdir));
+        end
 	dummy = 0;
 
 function cnew = addifunique(c,k)
