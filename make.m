@@ -23,6 +23,8 @@ function status = make(target,mfname,dlvl,depth,parents)
 %	>0: success, unix time that the build is up-to-date to
 %
 
+    mstart = tic;
+    
     if exist('OCTAVE_VERSION')
         is_octave = 1;
     else
@@ -42,7 +44,7 @@ function status = make(target,mfname,dlvl,depth,parents)
     if incell(parents, target)
         status = -2;
         if (dlvl >= 0)
-            pi();
+            if (dlvl >= 2); pi(); end
             fprintf('circular dependency involving %s, aborting.\n',target);
         end
         return;
@@ -51,7 +53,7 @@ function status = make(target,mfname,dlvl,depth,parents)
     if not(eval(['isfield(', mfname, ',target)']))
         status = -1;
         if (dlvl >= 0)
-            pi();
+            if (dlvl >= 2); pi(); end
             fprintf('no such target ''%s'', aborting.\n',target);
         end
         return;
@@ -69,7 +71,10 @@ function status = make(target,mfname,dlvl,depth,parents)
         parents{length(parents) + 1} = target;
         dr(i) = make(deps{i},mfname,dlvl,depth+1,parents);
         if dr(i) < 0
-            if (dlvl >= 1); pi(); fprintf('error %d making %s\n',dr(i),target); end
+            if (dlvl >= 1)
+                if (dlvl >= 2); pi(); end
+                fprintf('error %d making %s\n',dr(i),target);
+            end
         end
     end
     % if all are in (0, timestamp) then we are up-to-date; return timestamp
@@ -96,7 +101,8 @@ function status = make(target,mfname,dlvl,depth,parents)
         else
             fdr(i) = -1;
             if (dlvl >= 0)
-                pi(); fprintf('error making %s: file "%s" not found\n', target, fdeps{i});
+                if (dlvl >= 2); pi(); end
+                fprintf('error making %s: file "%s" not found\n', target, fdeps{i});
             end
         end
     end
@@ -113,7 +119,11 @@ function status = make(target,mfname,dlvl,depth,parents)
         status = -1;
         if (dlvl >= 2); pi(); fprintf('not making %s.\n', target); end
     elseif dirty
-        if (dlvl >= 1); pi(); fprintf('now making %s:\n', target); end
+        if (dlvl >= 1)
+            if (dlvl >= 2); pi(); end
+            fprintf('now making %s: ', target);
+            if (dlvl >= 2); fprintf('\n'); end
+        end
         try
             tic;
             evalin('base', eval([tptr '.rule']))
@@ -127,11 +137,16 @@ function status = make(target,mfname,dlvl,depth,parents)
             if (dlvl >= 3); pi(); fprintf('it is %d.\n',tt); end;
             eval(sprintf('%s = %f;',ttptr,tt));
             status = tt;
-            fprintf('made %s in %0.3f s.\n',target,t);
+            tall = toc(mstart);
+            if (dlvl >= 1)
+                if (dlvl >= 2); pi(); end
+                fprintf('made %s in %0.3f s (%0.3f s with dependencies).\n',...
+                        target,t,tall);
+            end
         catch err
             eval([ttptr ' = 0;']);
             if (dlvl >= 0)
-                pi(); fprintf('*** error making %s:\n', target);
+                pi(); fprintf('\n\n*** error making %s:\n', target);
                 pi(); fprintf('******************************\n\n');
                 if is_octave
                     pi(); fprintf('%s\n\n',lasterr());
