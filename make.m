@@ -82,10 +82,14 @@ function status = make(target,mfname,dlvl,depth,parents)
         if is_octave % this version is probably more reliable
             [s,e] = stat(fdeps{i});
             mt = s.mtime;
-        else % hacky matlab way, ideally this should be a .mex maybe
-            [status,out] = unix(['stat -c %Y ', fdeps{i}]);
-            e = status;
-            mt = str2num(out);
+        else
+            try
+                st = stat_mex(fdeps{i});
+                mt = st(10);
+                e = 0;
+            catch
+                e = 1;
+            end
         end
         if e == 0
             fdr(i) = mt;
@@ -118,12 +122,7 @@ function status = make(target,mfname,dlvl,depth,parents)
             if is_octave
                 tt = time;
             else
-                [status, out] = unix('date +%s');
-                tt = str2num(out);
-                % this would provide sub-second resolution needed for short operations
-                % but needs some work.
-                %c = clock;
-                %tt = tt + c(6) - floor(c(6));
+                tt = gettimeofday_mex;
             end
             if (dlvl >= 3); pi(); fprintf('it is %d.\n',tt); end;
             eval(sprintf('%s = %f;',ttptr,tt));

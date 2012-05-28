@@ -51,11 +51,12 @@ Each function's built-in documentation comes with more details.
 	addrule('comparison',{'test1','test2'},{},...
 		'plot(results1 - results2)');
 
-	make('comparison');
+	make comparison;
 	bar = 7;
-	touch('extraparams');
-	make('comparison');
-	% remakes extraparams, test2, comparison, NOT test1, params, toolboxes
+	touch extraparams;
+	make comparison;
+	% remakes extraparams, test2, and comparison,
+    % but NOT test1, params, or toolboxes.
 
 TODO: document this more.  Hopefully this with the actual function docs is
 somewhat self-explanatory.
