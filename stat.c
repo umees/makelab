@@ -2,7 +2,7 @@
 #include "matrix.h"
 #include <sys/stat.h>
 
-#define OSX
+#include "arch.h"
 
 const mwSize dims[] = {13};
 
