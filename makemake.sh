@@ -11,3 +11,4 @@ MEX_PATH=$MATLAB_ROOT/bin/mex
 
 $MEX_PATH stat.c -o stat_mex
 $MEX_PATH gettimeofday.c -o gettimeofday_mex
+$MEX_PATH fnvhash.c -o fnvhash_mex
