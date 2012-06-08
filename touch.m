@@ -18,7 +18,9 @@ function status = touch(target,mfname)
         status = -1;
         fprintf('no such target: %s\n',target);
     else
-        mf(target).timestamp = 0;
+        s = mf(target);
+        s.timestamp = 0;
+        mf(target) = s;
         status = 0;
         assignin('base',mfname,mf);
     end

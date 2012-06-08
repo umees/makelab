@@ -9,6 +9,10 @@ const mwSize dims[] = {1};
 void mexFunction(int nlhs, mxArray * plhs[],
 		 int nrhs, const mxArray *prhs[]) {
     
+    if (nrhs != 2) {
+      return;
+    }
+
     unsigned long long * output;
     unsigned long long h;
     int sz, szr, szi;
@@ -25,11 +29,11 @@ void mexFunction(int nlhs, mxArray * plhs[],
     h = FNV_BASIS;
     for (i = 0; i < szr; i++, pr++) {
       h ^= (unsigned long long)(*pr);
-      h *= FNV_PRIME;
+      h *= FNV_PRIME; h++;
     }
     for (i = 0; i < szi; i++, pi++) {
       h ^= (unsigned long long)(*pi);
-      h *= FNV_PRIME;
+      h *= FNV_PRIME; h++;
     }
 
     *output = h;

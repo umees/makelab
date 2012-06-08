@@ -3,6 +3,7 @@ function rule(varargin)
 rn = '';
 deplist = {};
 fdlist = {};
+vdlist = {};
 rule = '';
 
 short = 0;
@@ -16,6 +17,9 @@ for i = 2:nargin
     elseif a(1) == '@'
         n = a(2:end);
         deplist{length(deplist)+1} = n;
+    elseif a(1) == '&'
+        n = a(2:end);
+        vdlist{length(vdlist)+1} = n;
     elseif a(1) == '!'
         short = 1;
         break;
@@ -38,5 +42,5 @@ end
 if short
     addrule(rn,deplist);
 else
-    addrule(rn,deplist,fdlist,rule);
+    addrule(rn,deplist,fdlist,vdlist,rule);
 end
