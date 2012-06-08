@@ -8,15 +8,11 @@ function [status, omf] = make(target,mfname,dlvl,depth,parents,imf)
 %	target; name of the target to build
 %	mfname; makefile name, optional, default 'makefile'.  Note that this isn't
 %		actually a file, but rather the name of a variable containing
-%		information about build dependencies.  The variable is assumed
-%		to be (and should be!) global.
+%		information about build dependencies.
 %	dlvl; debug level, optional, default 1.
 %		0: No information except errors, probably too little.
 %		1: Various and sundry information, a comfortable amount
 %		2: More information, probably too much.
-%	depth; depth into the dependency tree, please omit, it's really
-%		unused and defaults to 0.
-%	parents; used to detect circular deps, please omit.
 %
 % out:
 %	-1: error somewhere in the build tree
@@ -65,20 +61,14 @@ function [status, omf] = make(target,mfname,dlvl,depth,parents,imf)
     end
 
     %% Build all subtargets:
-    %tptr = [mfname, '.', target]; % "pointer" to the target struct in makefile
     tinfo = mf.(target);
-    %ttptr = [tptr, '.timestamp']; % "pointer" to target's timestamp
-    %tt = tinfo.timestamp;
-    %tt = eval(ttptr); % current timestamp
     clean = 1;
-    %deps = eval([tptr '.deps'],'{}');
     try; deps = tinfo.deps; catch; deps = {}; end
     dr = zeros(length(deps),1);
     if (dlvl >= 2); pi(); fprintf('looking at %s:\n', target); end
     for i = 1:length(deps)
         if (dlvl >= 2); pi(); fprintf('%s making %s...\n', target, deps{i}); end
         parents{length(parents) + 1} = target;
-        %dr(i) = make(deps{i},mfname,dlvl,depth+1,parents);
         [dr(i), mf] = make(deps{i},0,dlvl,depth+1,parents,mf);
         if dr(i) < 0
             if (dlvl >= 1)
@@ -93,7 +83,6 @@ function [status, omf] = make(target,mfname,dlvl,depth,parents,imf)
     % if all are >0 but some are >timestamp then we should build
     %	and return (time) if it worked, -1 if it didn't
     
-    %fdeps = eval([tptr '.fdeps'],'{}');
     try; fdeps = tinfo.fdeps; catch; fdeps = {}; end
     fdr = zeros(length(fdeps),1);
     for i = 1:length(fdeps)
@@ -148,7 +137,6 @@ function [status, omf] = make(target,mfname,dlvl,depth,parents,imf)
                 tt = gettimeofday_mex;
             end
             if (dlvl >= 3); pi(); fprintf('it is %d.\n',tt); end;
-            %eval(sprintf('%s = %f;',ttptr,tt));
             mf.(target).timestamp = tt;
             status = tt;
             tall = toc(mstart);
@@ -159,7 +147,6 @@ function [status, omf] = make(target,mfname,dlvl,depth,parents,imf)
             end
         catch err
             mf.(target).timestamp = 0;
-            %eval([ttptr ' = 0;']);
             if (dlvl >= 0)
                 pi(); fprintf('\n\n*** error making %s:\n', target);
                 pi(); fprintf('******************************\n\n');

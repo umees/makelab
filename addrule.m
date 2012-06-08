@@ -1,7 +1,7 @@
 function s = addrule(target,deps,fdeps,rule,mfname)
 % function addrule(target,deps,fdeps,rule,mfname)
 %
-% Adds a rule to a makefile. Make sure the makefile is global.
+% Adds a rule to a makefile.
 %
 % in:
 %	target; name of target being added - if the target exists
@@ -24,7 +24,12 @@ function s = addrule(target,deps,fdeps,rule,mfname)
     end
     if nargin < 4; help(mfilename); error(mfilename); return; end
     
-    mf = evalin('base', mfname);
+    try
+        mf = evalin('base', mfname);
+    catch % assume that error means the mf doesn't exist
+        mf = {};
+    end
+    
     same = 0;
     s = 0;
     if isfield(mf,target)
