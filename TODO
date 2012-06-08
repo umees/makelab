@@ -1,0 +1,6 @@
+- fix documentation
+  it currently uses the old addrule syntax example.
+  - sidetask: add entire demo that doesn't use irt
+- vdeps: add variable dependencies
+  (in progress using fnvhash)
+- change from struct to hash table
