@@ -15,30 +15,31 @@ function s = addrule(target,deps,fdeps,rule,mfname)
 %      1 if the rule replaced a previous rule
 %      2 if the rule already existed and was identical
 %
-	if nargin < 5; mfname = 'makefile'; end
-        % common pattern:
-        % expand addrule('x',{'y'}) to addrule('x',{'y'},{'x.m'},'x')
-        if nargin == 2
-            addrule(target,deps,{[target, '.m']},target);
-            return;
-        end
-	if nargin < 4; help(mfilename); error(mfilename); return; end
-	eval(['global ', mfname, ';'])
-	same = 0;
-	s = 0;
-	if eval(['isfield(', mfname, ',target)'])
-		s = 1;
-		cur = eval([mfname, '.', target]);
-		same = isequal(cur.deps,deps) && ...
-			isequal(cur.fdeps,fdeps) && ...
-			isequal(cur.rule,rule);
-	end
-	if not(same)
-		t.deps = deps;
-		t.fdeps = fdeps;
-		t.rule = rule;
-		t.timestamp = 0;
-		eval([mfname, '.', target, ' = t;']);
-	else
-		s = 2;
-	end
+    if nargin < 5; mfname = 'makefile'; end
+    % common pattern:
+    % expand addrule('x',{'y'}) to addrule('x',{'y'},{'x.m'},'x')
+    if nargin == 2
+        addrule(target,deps,{[target, '.m']},target);
+        return;
+    end
+    if nargin < 4; help(mfilename); error(mfilename); return; end
+    
+    mf = evalin('base', mfname);
+    same = 0;
+    s = 0;
+    if isfield(mf,target)
+        s = 1;
+        cur = mf.(target);
+        same = isequal(cur.deps,deps) && ...
+               isequal(cur.fdeps,fdeps) && ...
+               isequal(cur.rule,rule);
+    end
+    if not(same)
+        mf.(target).deps = deps;
+        mf.(target).fdeps = fdeps;
+        mf.(target).rule = rule;
+        mf.(target).timestamp = 0;
+        assignin('base', mfname, mf);
+    else
+        s = 2;
+    end

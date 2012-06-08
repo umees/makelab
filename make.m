@@ -1,4 +1,4 @@
-function status = make(target,mfname,dlvl,depth,parents)
+function [status, omf] = make(target,mfname,dlvl,depth,parents,imf)
 % function status = make(target,mfname,dlvl,depth)
 % 
 % Makes a specific target, resolving dependencies and building anything
@@ -37,7 +37,12 @@ function status = make(target,mfname,dlvl,depth,parents)
     if nargin < 3; dlvl = 1; end
     if nargin < 2; mfname = 'makefile'; end
     if nargin < 1; help(mfilename); error(mfilename); return; end
-    eval(['global ', mfname, ';'])
+    
+    if ischar(mfname)
+        mf = evalin('base',mfname);
+    else
+        mf = imf;
+    end
 
     pi = @() putindent(depth*1);
     
@@ -50,7 +55,7 @@ function status = make(target,mfname,dlvl,depth,parents)
         return;
     end
 
-    if not(eval(['isfield(', mfname, ',target)']))
+    if not(isfield(mf,target))
         status = -1;
         if (dlvl >= 0)
             if (dlvl >= 2); pi(); end
@@ -59,17 +64,22 @@ function status = make(target,mfname,dlvl,depth,parents)
         return;
     end
 
-    tptr = [mfname, '.', target];
-    ttptr = [tptr, '.timestamp'];
-    tt = eval(ttptr);
+    %% Build all subtargets:
+    %tptr = [mfname, '.', target]; % "pointer" to the target struct in makefile
+    tinfo = mf.(target);
+    %ttptr = [tptr, '.timestamp']; % "pointer" to target's timestamp
+    %tt = tinfo.timestamp;
+    %tt = eval(ttptr); % current timestamp
     clean = 1;
-    deps = eval([tptr '.deps'],'{}');
+    %deps = eval([tptr '.deps'],'{}');
+    try; deps = tinfo.deps; catch; deps = {}; end
     dr = zeros(length(deps),1);
     if (dlvl >= 2); pi(); fprintf('looking at %s:\n', target); end
     for i = 1:length(deps)
         if (dlvl >= 2); pi(); fprintf('%s making %s...\n', target, deps{i}); end
         parents{length(parents) + 1} = target;
-        dr(i) = make(deps{i},mfname,dlvl,depth+1,parents);
+        %dr(i) = make(deps{i},mfname,dlvl,depth+1,parents);
+        [dr(i), mf] = make(deps{i},0,dlvl,depth+1,parents,mf);
         if dr(i) < 0
             if (dlvl >= 1)
                 if (dlvl >= 2); pi(); end
@@ -77,11 +87,14 @@ function status = make(target,mfname,dlvl,depth,parents)
             end
         end
     end
+    
     % if all are in (0, timestamp) then we are up-to-date; return timestamp
     % if any are <0; error, we can't build, return -1
     % if all are >0 but some are >timestamp then we should build
     %	and return (time) if it worked, -1 if it didn't
-    fdeps = eval([tptr '.fdeps'],'{}');
+    
+    %fdeps = eval([tptr '.fdeps'],'{}');
+    try; fdeps = tinfo.fdeps; catch; fdeps = {}; end
     fdr = zeros(length(fdeps),1);
     for i = 1:length(fdeps)
         if is_octave % this version is probably more reliable
@@ -109,24 +122,24 @@ function status = make(target,mfname,dlvl,depth,parents)
     if (dlvl >= 3)
         fprintf('in making %s, results are:\n',target);
         results = [dr; fdr]
-        fprintf('and current time tt is %d for %s.\n',tt,target);
+        fprintf('and current time tt is %d for %s.\n',tinfo.timestamp,target);
     else
         results = [dr; fdr];
     end
     err = any(results < 0);
-    dirty = any(results > tt) || tt == 0; %% assume tt = 0 implies it is unmade
+    dirty = any(results > tinfo.timestamp) || tinfo.timestamp == 0; %% assume t = 0 implies it is unmade
     if err
         status = -1;
         if (dlvl >= 2); pi(); fprintf('not making %s.\n', target); end
     elseif dirty
         if (dlvl >= 1)
             if (dlvl >= 2); pi(); end
-            fprintf('now making %s: ', target);
+            fprintf('now making \033[1m%s\033[0m: ', target);
             if (dlvl >= 2); fprintf('\n'); end
         end
         try
             tic;
-            evalin('base', eval([tptr '.rule']))
+            evalin('base', tinfo.rule);
             if (dlvl >= 3); pi(); fprintf('getting timestamp for %s now!...',target); end;
             t = toc;
             if is_octave
@@ -135,7 +148,8 @@ function status = make(target,mfname,dlvl,depth,parents)
                 tt = gettimeofday_mex;
             end
             if (dlvl >= 3); pi(); fprintf('it is %d.\n',tt); end;
-            eval(sprintf('%s = %f;',ttptr,tt));
+            %eval(sprintf('%s = %f;',ttptr,tt));
+            mf.(target).timestamp = tt;
             status = tt;
             tall = toc(mstart);
             if (dlvl >= 1)
@@ -144,7 +158,8 @@ function status = make(target,mfname,dlvl,depth,parents)
                         target,t,tall);
             end
         catch err
-            eval([ttptr ' = 0;']);
+            mf.(target).timestamp = 0;
+            %eval([ttptr ' = 0;']);
             if (dlvl >= 0)
                 pi(); fprintf('\n\n*** error making %s:\n', target);
                 pi(); fprintf('******************************\n\n');
@@ -161,7 +176,12 @@ function status = make(target,mfname,dlvl,depth,parents)
         if (dlvl >= 2 || (dlvl >= 1 && depth == 0))
             pi(); fprintf('nothing to do for %s.\n', target);
         end
-        status = tt;
+        status = tinfo.timestamp;
+    end
+    if ischar(mfname)
+        assignin('base',mfname,mf);
+    else
+        omf = mf;
     end
 
 function putindent(n)

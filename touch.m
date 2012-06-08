@@ -11,13 +11,14 @@ function status = touch(target,mfname)
 % out:
 %	status; -1 if the target doesn't exist, 0 on success
 %
-	if nargin < 2; mfname = 'makefile'; end
-	if nargin < 1; help(mfilename); error(mfilename); return; end
-	eval(['global ', mfname, ';'])
-	if not(eval(['isfield(', mfname, ',target)']))
-		status = -1;
-		printf('no such target: %s\n',target)
-	else
-		eval(sprintf('%s.%s.timestamp = 0;', mfname, target));
-		status = 0;
-	end
+    if nargin < 2; mfname = 'makefile'; end
+    if nargin < 1; help(mfilename); error(mfilename); return; end
+    mf = evalin('base',mfname);
+    if not(isfield(mf,target))
+        status = -1;
+        fprintf('no such target: %s\n',target);
+    else
+        mf.(target).timestamp = 0;
+        status = 0;
+        assignin('base',mfname,mf);
+    end

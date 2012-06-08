@@ -15,8 +15,8 @@ function graphviz(mfname,opts,tmpdir)
 	if nargin < 3; tmpdir = '/tmp'; end
 	if nargin < 2; opts = ''; end
 	if nargin < 1; mfname = 'makefile'; end
-	eval(['global ', mfname, ';'])
-	mf = eval(mfname);
+        
+	mf = evalin('base',mfname);
 
 	fontname = 'monospace';
 
@@ -28,9 +28,9 @@ function graphviz(mfname,opts,tmpdir)
 
 	for i = 1:length(targets)
 		target = targets{i};
-		tptr = [mfname, '.', target];
-		deps = eval([tptr '.deps'],'{}');
-		fdeps = eval([tptr '.fdeps'],'{}');
+		tptr = mf.(target);
+		deps = tptr.deps;
+		fdeps = tptr.fdeps;
 		for j = 1:length(deps)
 			fprintf(fh,'\t%s -> %s;\n',deps{j},target);
 		end
