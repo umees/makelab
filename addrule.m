@@ -27,23 +27,24 @@ function s = addrule(target,deps,fdeps,rule,mfname)
     try
         mf = evalin('base', mfname);
     catch % assume that error means the mf doesn't exist
-        mf = {};
+        mf = containers.Map();
     end
     
     same = 0;
     s = 0;
-    if isfield(mf,target)
+    if isKey(mf,target)
         s = 1;
-        cur = mf.(target);
+        cur = mf(target);
         same = isequal(cur.deps,deps) && ...
                isequal(cur.fdeps,fdeps) && ...
                isequal(cur.rule,rule);
     end
     if not(same)
-        mf.(target).deps = deps;
-        mf.(target).fdeps = fdeps;
-        mf.(target).rule = rule;
-        mf.(target).timestamp = 0;
+        st.deps = deps;
+        st.fdeps = fdeps;
+        st.rule = rule;
+        st.timestamp = 0;
+        mf(target) = st;
         assignin('base', mfname, mf);
     else
         s = 2;

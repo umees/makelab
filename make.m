@@ -51,7 +51,7 @@ function [status, omf] = make(target,mfname,dlvl,depth,parents,imf)
         return;
     end
 
-    if not(isfield(mf,target))
+    if not(isKey(mf,target))
         status = -1;
         if (dlvl >= 0)
             if (dlvl >= 2); pi(); end
@@ -61,7 +61,7 @@ function [status, omf] = make(target,mfname,dlvl,depth,parents,imf)
     end
 
     %% Build all subtargets:
-    tinfo = mf.(target);
+    tinfo = mf(target);
     clean = 1;
     try; deps = tinfo.deps; catch; deps = {}; end
     dr = zeros(length(deps),1);
@@ -137,7 +137,7 @@ function [status, omf] = make(target,mfname,dlvl,depth,parents,imf)
                 tt = gettimeofday_mex;
             end
             if (dlvl >= 3); pi(); fprintf('it is %d.\n',tt); end;
-            mf.(target).timestamp = tt;
+            mf(target).timestamp = tt;
             status = tt;
             tall = toc(mstart);
             if (dlvl >= 1)
@@ -146,7 +146,7 @@ function [status, omf] = make(target,mfname,dlvl,depth,parents,imf)
                         target,t,tall);
             end
         catch err
-            mf.(target).timestamp = 0;
+            mf(target).timestamp = 0;
             if (dlvl >= 0)
                 pi(); fprintf('\n\n*** error making %s:\n', target);
                 pi(); fprintf('******************************\n\n');

@@ -14,11 +14,11 @@ function status = touch(target,mfname)
     if nargin < 2; mfname = 'makefile'; end
     if nargin < 1; help(mfilename); error(mfilename); return; end
     mf = evalin('base',mfname);
-    if not(isfield(mf,target))
+    if not(isKey(mf,target))
         status = -1;
         fprintf('no such target: %s\n',target);
     else
-        mf.(target).timestamp = 0;
+        mf(target).timestamp = 0;
         status = 0;
         assignin('base',mfname,mf);
     end
